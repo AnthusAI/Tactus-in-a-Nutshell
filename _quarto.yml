@@ -42,7 +42,7 @@ format:
     include-in-header:
       text: |
         \usepackage{fvextra}
-        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\\\}}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
         \usepackage{graphicx}
         \usepackage{libertinus}
         \usepackage{tikz}

@@ -1,0 +1,98 @@
+# Migration Guide
+
+## From Python Scripts
+
+### Before (Python)
+
+```python
+import openai
+
+def run_agent(prompt):
+    messages = [{"role": "user", "content": prompt}]
+    while True:
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            tools=[search_tool, done_tool]
+        )
+        if done_called(response):
+            return extract_result(response)
+        messages.append(response.choices[0].message)
+```
+
+### After (Tactus)
+
+```lua
+Tool "search" { ... }
+Tool "done" { ... }
+
+Agent "worker" {
+    provider = "openai",
+    model = "gpt-4o",
+    system_prompt = "...",
+    toolsets = {"search", "done"}
+}
+
+Procedure "main" {
+    input = {prompt = field.string{required = true}},
+    output = {result = field.string{required = true}},
+    function(input)
+        Agent("worker").turn({inject = input.prompt})
+        repeat Agent("worker").turn() until Tool.called("done")
+        return {result = Tool.last_result("done")}
+    end
+}
+```
+
+**Benefits:**
+- Automatic checkpointing
+- HITL built-in
+- BDD testing
+- Type-safe I/O
+
+## From LangChain/LangGraph
+
+### Before (LangGraph)
+
+```python
+class State(TypedDict):
+    messages: list
+    done: bool
+
+graph = StateGraph(State)
+graph.add_node("agent", agent_node)
+graph.add_node("tools", tool_node)
+graph.add_conditional_edges(...)
+app = graph.compile(checkpointer=memory)
+```
+
+### After (Tactus)
+
+```lua
+Agent "worker" {
+    provider = "openai",
+    toolsets = {"search", "done"}
+}
+
+Procedure "main" {
+    function()
+        repeat Agent("worker").turn() until Tool.called("done")
+        return {result = Tool.last_result("done")}
+    end
+}
+```
+
+**Benefits:**
+- Imperative code instead of graph definition
+- Simpler mental model
+- Same durability guarantees
+
+## Key Differences
+
+| Python/LangChain | Tactus |
+|------------------|--------|
+| Classes and decorators | Declarative blocks |
+| Manual state management | Automatic checkpointing |
+| Graph-based flow | Imperative loops |
+| Separate test files | Embedded specifications |
+| Multiple files | Single .tac file |

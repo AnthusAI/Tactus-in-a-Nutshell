@@ -1,0 +1,29 @@
+% Custom title page for PDF
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+    % White background
+    \fill[white] (current page.north west) rectangle (current page.south east);
+
+    % Top magenta banner (flush to top edge)
+    \fill[color=magenta] (current page.north west) rectangle ([yshift=-1.5cm]current page.north east);
+
+    % Series text in banner - centered vertically in the banner
+    \node[white,font=\sffamily\small\bfseries] at ([yshift=-0.75cm]current page.north) {THE TACTUS SERIES};
+
+    % Main magenta title block - centered
+    \node[fill=magenta,minimum width=16.5cm,minimum height=5.4cm,anchor=north] (titleblock) at ([yshift=-3.3cm]current page.north) {};
+
+    % Title "Tactus" and subtitle line inside magenta block
+    \node[white,font=\sffamily\bfseries\fontsize{112}{118}\selectfont,anchor=north] at ([yshift=-0.5cm]titleblock.north) {\addfontfeature{LetterSpace=-2.0}Tactus};
+    \node[white,font=\sffamily\bfseries\fontsize{30}{34}\selectfont,anchor=south] at ([yshift=0.45cm]titleblock.south) {\addfontfeature{LetterSpace=3.0}IN A NUTSHELL};
+
+    % Subtitle
+    \node[black,font=\sffamily\Large\bfseries,text width=18cm,align=center] (subtitle) at ([yshift=-0.7cm]titleblock.south) {A Desktop Quick Reference};
+
+    % Cover art
+    \node[anchor=north] at ([yshift=-0.2cm]subtitle.south) {\includegraphics[width=15cm,height=15cm,keepaspectratio]{images/cover-animal.png}};
+
+    % Author
+    \node[black,font=\Large\sffamily\bfseries] at ([yshift=1.6cm]current page.south) {Ryan Porter};
+\end{tikzpicture}
+\clearpage

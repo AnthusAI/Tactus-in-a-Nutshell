@@ -1,0 +1,290 @@
+/* Simple, clean styling for HTML book with light/dark mode support */
+
+/* Hide the fancy cover for HTML - just show content */
+.book-cover {
+    display: none;
+}
+
+/* Light mode (default) */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --heading-color: #2c3e50;
+    --heading2-color: #34495e;
+    --border-color: #ecf0f1;
+    --code-bg: #f8f9fa;
+    --code-inline-bg: #f4f4f4;
+    --code-border: #5e72e4;
+    --code-label-bg: #eef1f4;
+    --code-label-color: #6b7280;
+    --link-color: #5e72e4;
+    --quote-color: #666666;
+    --table-border: #dddddd;
+    --table-header-bg: #f8f9fa;
+    color-scheme: light;
+}
+
+/* Dark mode (follows system preference) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1e1e1e;
+        --text-color: #d4d4d4;
+        --heading-color: #9cdcfe;
+        --heading2-color: #7cc0f0;
+        --border-color: #3e3e42;
+        --code-bg: #11151b;
+        --code-inline-bg: #11151b;
+        --code-border: #7cc0f0;
+        --code-label-bg: #161c24;
+        --code-label-color: #a7b0bf;
+        --link-color: #7cc0f0;
+        --quote-color: #999999;
+        --table-border: #3e3e42;
+        --table-header-bg: #2d2d30;
+        color-scheme: dark;
+    }
+
+    /* Quarto-specific dark mode overrides */
+    .quarto-container {
+        background-color: var(--bg-color) !important;
+    }
+
+    .navbar, .sidebar {
+        background-color: var(--code-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    .navbar a, .sidebar a {
+        color: var(--text-color) !important;
+    }
+
+    .navbar a:hover, .sidebar a:hover {
+        color: var(--link-color) !important;
+    }
+
+    /* Force dark code backgrounds to override theme defaults */
+    pre, pre code, .sourceCode {
+        background-color: var(--code-bg) !important;
+        color: var(--text-color) !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    code, code span {
+        background-color: var(--code-inline-bg) !important;
+        color: var(--text-color) !important;
+    }
+
+    /* Darken search box */
+    .sidebar .sidebar-search input,
+    .quarto-search input,
+    .aa-Input {
+        background-color: var(--code-bg) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    /* Darken search icon area/button */
+    .aa-DetachedSearchButton,
+    .aa-DetachedSearchButtonIcon,
+    .aa-DetachedSearchButtonPlaceholder,
+    .aa-DetachedSearchButton:focus,
+    .aa-DetachedSearchButton:hover {
+        background-color: var(--code-bg) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    /* Catch-all for the search icon container beside the input */
+    .sidebar .sidebar-search *,
+    .quarto-search * {
+        background-color: var(--code-bg) !important;
+        color: var(--text-color) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    pre {
+        border-left: none !important;
+    }
+
+    /* Make sidebar numbering visible in dark mode */
+    .sidebar .chapter-number,
+    .sidebar .section-number,
+    .sidebar .sidebar-item-number {
+        color: var(--text-color) !important;
+        opacity: 0.85;
+    }
+}
+
+/* Clean typography */
+body {
+    font-family: ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', Times, serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+h1 {
+    color: var(--heading-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+h2 {
+    color: var(--heading2-color);
+}
+
+h3, h4, h5, h6 {
+    color: var(--heading-color);
+}
+
+/* Code blocks */
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border-color);
+    padding: 1.35em 1.4em !important;
+    overflow-x: auto;
+    border-radius: 4px;
+}
+
+pre code {
+    display: block;
+    padding: 0 !important;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+    color: var(--text-color);
+}
+
+/* Included code blocks: show file path label (HTML only) */
+.sourceCode[data-show-path="true"]::before {
+    content: attr(data-file);
+    display: block;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.85em;
+    background: var(--code-label-bg);
+    color: var(--code-label-color);
+    padding: 0.5em 1.4em;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+.sourceCode[data-show-path="true"] pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+    border-top: none;
+}
+
+/* Make the code copy icon visible (Quarto embeds a black SVG by default). */
+.code-copy-button {
+    opacity: 0.6;
+}
+
+.code-copy-button:hover {
+    opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+    .code-copy-button > .bi::before {
+        filter: invert(1) brightness(1.15);
+    }
+}
+
+code {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    background: var(--code-inline-bg);
+    padding: 0.2em 0.45em;
+    border-radius: 3px;
+    font-size: 0.95em;
+    color: var(--text-color);
+}
+
+/* Links */
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Hide Quarto's color-scheme toggle in the sidebar */
+.quarto-color-scheme-toggle {
+    display: none !important;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+th, td {
+    border: 1px solid var(--table-border);
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background: var(--table-header-bg);
+    font-weight: 600;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid var(--code-border);
+    margin-left: 0;
+    padding-left: 1em;
+    color: var(--quote-color);
+    font-style: italic;
+}
+
+/* Clean, readable content width */
+.content {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 1.5rem 2em 2em;
+}
+
+/* Neutralize syntax colors (use monochrome highlighting) */
+.sourceCode span { color: inherit !important; }
+
+/* Align top spacing across sidebar, margin, and content */
+#quarto-sidebar.sidebar,
+#quarto-margin-sidebar.sidebar,
+main.content {
+    padding-top: 1.5rem !important;
+}
+
+#quarto-sidebar .sidebar-header,
+#quarto-sidebar .sidebar-title {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+#quarto-margin-sidebar #toc-title {
+    margin-top: 0;
+}
+
+header.quarto-title-block {
+    margin-top: 0;
+}
+
+#quarto-margin-sidebar.sidebar {
+    padding-top: 2rem !important;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}

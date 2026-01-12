@@ -1,0 +1,102 @@
+# Syntax Quick Reference
+
+## Declarations
+
+### Agent
+
+```lua
+Agent "name" {
+    provider = "openai",          -- Required: openai, bedrock, google
+    model = "gpt-4o",             -- Optional: defaults from config
+    system_prompt = "...",        -- Required: agent instructions
+    initial_message = "...",      -- Optional: first message
+    toolsets = {"tool1", "tool2"} -- Optional: available tools
+}
+```
+
+### Tool
+
+```lua
+Tool "name" {
+    description = "What the tool does",
+    input = {
+        param = field.string{required = true, description = "..."}
+    },
+    function(args)
+        return "result"
+    end
+}
+```
+
+### Procedure
+
+```lua
+Procedure "main" {
+    input = {
+        name = field.string{required = true}
+    },
+    output = {
+        result = field.string{required = true}
+    },
+    state = {
+        count = field.number{default = 0}
+    },
+    function(input)
+        return {result = "done"}
+    end
+}
+```
+
+### Toolset
+
+```lua
+Toolset "name" {
+    type = "lua",
+    tools = {
+        {name = "add", parameters = {...}, handler = function(args) ... end}
+    }
+}
+```
+
+## Field Types
+
+| Type | Syntax | Options |
+|------|--------|---------|
+| String | `field.string{}` | required, default, description, enum |
+| Number | `field.number{}` | required, default, description |
+| Boolean | `field.boolean{}` | required, default, description |
+| Array | `field.array{}` | required, default, description |
+| Object | `field.object{}` | required, default, description |
+
+## Control Flow
+
+```lua
+-- If/else
+if condition then
+    -- code
+elseif other then
+    -- code
+else
+    -- code
+end
+
+-- While loop
+while condition do
+    -- code
+end
+
+-- For loop (numeric)
+for i = 1, 10 do
+    -- code
+end
+
+-- For loop (table)
+for key, value in pairs(table) do
+    -- code
+end
+
+-- Repeat/until
+repeat
+    -- code
+until condition
+```

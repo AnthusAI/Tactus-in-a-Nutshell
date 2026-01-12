@@ -1,0 +1,55 @@
+project:
+  type: book
+  output-dir: _output
+  post-render:
+    - "bash scripts/post-render.sh"
+
+metadata-files:
+  - book-links.yml
+  - tactus-target.yml
+
+filters:
+  - filters/include-code.lua
+
+book:
+  title: "Tactus in a Nutshell"
+  subtitle: "A Desktop Quick Reference"
+  author: "Ryan Porter"
+  date: today
+  chapters:
+    - index.qmd
+    - chapters/01-syntax-reference.qmd
+    - chapters/02-primitive-reference.qmd
+    - chapters/03-built-in-toolsets.qmd
+    - chapters/04-bdd-step-reference.qmd
+    - chapters/05-evaluator-reference.qmd
+    - chapters/06-configuration-reference.qmd
+    - chapters/07-cli-reference.qmd
+    - chapters/08-common-patterns.qmd
+    - chapters/09-troubleshooting.qmd
+    - chapters/10-migration-guide.qmd
+
+format:
+  html:
+    theme: cosmo
+    code-copy: true
+    code-overflow: wrap
+    css: simple-style.css
+  pdf:
+    documentclass: scrbook
+    papersize: letter
+    fontsize: 10pt
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\\\}}
+        \usepackage{graphicx}
+        \usepackage{libertinus}
+        \usepackage{tikz}
+        \usepackage{xcolor}
+        \definecolor{magenta}{RGB}{199,0,126}
+        \renewcommand{\maketitle}{}
+    include-before-body:
+      file: title-page.tex
+
+highlight-style: github

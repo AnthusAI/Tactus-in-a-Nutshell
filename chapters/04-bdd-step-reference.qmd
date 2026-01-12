@@ -1,0 +1,62 @@
+# BDD Step Reference
+
+## Tool Steps
+
+```gherkin
+Then the {tool} tool should be called
+Then the {tool} tool should not be called
+Then the {tool} tool should be called at least {n} times
+Then the {tool} tool should be called exactly {n} times
+Then the {tool} tool should be called with {param}={value}
+```
+
+## State Steps
+
+```gherkin
+Then the state {key} should be {value}
+Then the state {key} should exist
+Then the state {key} should not exist
+```
+
+## Stage Steps
+
+```gherkin
+Then the stage should be {name}
+```
+
+## Completion Steps
+
+```gherkin
+Given the procedure has started
+When the procedure runs
+When the {agent} agent takes turns
+When the {agent} agent takes {n} turns
+Then the procedure should complete successfully
+Then the procedure should fail
+Then the total iterations should be less than {n}
+Then the agent should take at least {n} turns
+```
+
+## Output Steps
+
+```gherkin
+Then the output {field} should be {value}
+Then the output {field} should exist
+Then the output {field} should not be {value}
+Then the output {field} should be greater than {n}
+Then the output {field} should match pattern "{regex}"
+```
+
+## Custom Steps
+
+```lua
+step("the research quality is high", function()
+    local results = State.get("results")
+    assert(#results > 5, "Not enough results")
+end)
+
+step("the user {name} is greeted", function(name)
+    local greeting = State.get("greeting")
+    assert(string.find(greeting, name), "Name not in greeting")
+end)
+```

@@ -1,0 +1,36 @@
+# Preface {.unnumbered}
+
+*Tactus in a Nutshell* is a desktop quick reference for the Tactus programming language.
+
+Keep this book on your desk (or in a browser tab) when you're writing Tactus code. It's designed for quick lookups, not sequential reading.
+
+## What's Inside
+
+- **Syntax Reference** — Declaration syntax, field types, control structures
+- **Primitive Reference** — Agent, Tool, State, Human, Log, Session, Procedure
+- **BDD Step Reference** — All built-in step definitions
+- **Evaluator Reference** — All evaluator types
+- **CLI Reference** — All commands and options
+- **Common Patterns** — Copy-paste solutions for common tasks
+- **Troubleshooting** — Error messages and solutions
+
+## Companion Books
+
+- **Learning Tactus** — Tutorials and progressive instruction
+- **Programming Tactus** — Comprehensive reference with explanations
+
+## Conventions
+
+Code is shown without extensive explanation:
+
+```lua
+Tool "done" {
+    description = "Signal completion",
+    input = {
+        message = field.string{required = true}
+    },
+    function(args) return args.message end
+}
+```
+
+When there are multiple options, they're listed in tables for quick scanning.

@@ -1,0 +1,49 @@
+# Configuration Reference
+
+## .tactus/config.yml
+
+```yaml
+# Provider credentials
+openai_api_key: sk-...
+aws_access_key_id: AKIA...
+aws_secret_access_key: ...
+aws_default_region: us-east-1
+google_api_key: ...
+
+# Defaults
+default_provider: openai
+default_model: gpt-4o
+
+# Tool paths
+tool_paths:
+  - "./tools"
+  - "./plugins"
+
+# MCP servers
+mcp_servers:
+  filesystem:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+  custom:
+    command: "python"
+    args: ["-m", "my_server"]
+    env:
+      API_KEY: "${API_KEY}"
+```
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | OpenAI API key |
+| `AWS_ACCESS_KEY_ID` | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key |
+| `AWS_DEFAULT_REGION` | AWS region |
+| `GOOGLE_API_KEY` | Google API key |
+
+## Configuration Priority
+
+1. Environment variables (highest)
+2. `.tactus/config.yml` in current directory
+3. `~/.tactus/config.yml` in home directory
+4. Defaults (lowest)

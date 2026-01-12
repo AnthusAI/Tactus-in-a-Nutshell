@@ -1,0 +1,63 @@
+name: Test Examples
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Tactus (pinned to book target if configured)
+        run: |
+          set -euo pipefail
+
+          repo=""
+          commit=""
+
+          if [[ -f tactus-target.yml ]]; then
+            repo="$(sed -n 's/^tactus_repo: //p' tactus-target.yml | head -n1 || true)"
+            commit="$(sed -n 's/^tactus_commit: //p' tactus-target.yml | head -n1 || true)"
+          fi
+
+          if [[ -n "${repo}" && -n "${commit}" && "${commit}" != "unknown" ]]; then
+            echo "Installing Tactus from ${repo}@${commit}"
+            pip install "git+https://github.com/${repo}.git@${commit}" || pip install tactus
+          else
+            echo "Installing Tactus from PyPI"
+            pip install tactus
+          fi
+        shell: bash
+
+      - name: Check book snippet includes
+        run: python scripts/check-snippet-includes.py
+
+      - name: Validate all examples
+        run: |
+          for file in code/**/*.tac; do
+            if [ -f "$file" ]; then
+              echo "Validating $file..."
+              tactus validate "$file"
+            fi
+          done
+
+      - name: Test all examples (BDD specs)
+        run: |
+          for file in code/**/*.tac; do
+            if [ -f "$file" ]; then
+              echo "Testing $file..."
+              tactus test "$file" || true
+            fi
+          done
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

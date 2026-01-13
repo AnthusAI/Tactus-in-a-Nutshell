@@ -1,0 +1,118 @@
+# Common Patterns
+
+## The Done Tool Pattern
+
+Standard pattern for agent completion:
+
+```lua
+local done = require("tactus.tools.done")
+
+worker = Agent {
+  provider = "openai",
+  system_prompt = "Do the task. Call done when finished.",
+  tools = {done}
+}
+
+Procedure {
+  output = {result = field.string{required = true}},
+  function(input)
+    repeat worker() until done.called() or Iterations.exceeded(20)
+    return {result = done.last_result() or ""}
+  end
+}
+```
+
+## Tool Result Summarization
+
+Force agent to explain tool results:
+
+```lua
+repeat
+  researcher()
+
+  if search.called() then
+    researcher({
+      message = "Summarize the tool results in 2–3 sentences.",
+      tools = {}  -- no tools = must respond with text
+    })
+  end
+until done.called()
+```
+
+## Human Approval Gate
+
+```lua
+local approved = Human.approve({
+    message = "Proceed with deployment?",
+    context = {version = version, env = environment}
+})
+
+if approved then
+    deploy()
+else
+    Log.info("Cancelled by user")
+end
+```
+
+## Multi-Agent Handoff
+
+```lua
+-- Researcher finds information
+repeat
+  researcher()
+until findings_ready.called()
+
+-- Writer creates content
+writer({message = "Write about: " .. (findings_ready.last_result() or "")})
+
+repeat
+  writer()
+until done.called()
+```
+
+## Retry with Backoff
+
+```lua
+local max_attempts = 3
+local attempt = 0
+
+repeat
+    attempt = attempt + 1
+    worker()
+
+    if not done.called() and attempt < max_attempts then
+      worker({message = "Try again. Attempt " .. attempt .. " of " .. max_attempts})
+    end
+until done.called() or attempt >= max_attempts
+```
+
+## Batch Processing
+
+```lua
+local items = input.items
+local results = {}
+
+for i, item in ipairs(items) do
+    state.current_item = i
+
+    processor({message = "Process: " .. item})
+
+    repeat
+      processor()
+    until item_done.called() or Iterations.exceeded(20)
+
+    results[i] = item_done.last_result()
+end
+```
+
+## Iteration Safety
+
+Always include max iterations:
+
+```lua
+repeat
+  worker()
+until done.called() or Iterations.exceeded(20)
+
+if not done.called() then Log.warn("Max turns reached without completion") end
+```

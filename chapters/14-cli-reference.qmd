@@ -1,0 +1,95 @@
+# CLI Reference
+
+## tactus run
+
+Execute a procedure:
+
+```bash
+tactus run procedure.tac
+
+# Shortcut (auto-inserts "run" if the first arg is a file)
+tactus procedure.tac
+
+# Pass inputs
+tactus run procedure.tac --param name="Alice"
+tactus run procedure.tac --param count=5 --param enabled=true
+tactus run procedure.tac --param items='[1,2,3]'
+tactus run procedure.tac --param config='{"key":"value"}'
+
+# Prompt for all inputs
+tactus run procedure.tac --interactive
+
+# Mocking (for fast, offline runs)
+tactus run procedure.tac --mock-all
+tactus run procedure.tac --mock search --mock api_call
+tactus run procedure.tac --mock-all --real done
+
+# Sandbox controls
+tactus run procedure.tac --sandbox
+tactus run procedure.tac --no-sandbox
+```
+
+## tactus validate
+
+Validate a `.tac` or `.lua` file:
+
+```bash
+tactus validate procedure.tac
+tactus validate procedure.tac --quick
+```
+
+## tactus info
+
+Show extracted metadata (inputs, outputs, agents, tools, scenarios):
+
+```bash
+tactus info procedure.tac
+```
+
+## tactus test
+
+Run in-file `Specifications([[
+...
+]])` scenarios:
+
+```bash
+tactus test procedure.tac
+tactus test procedure.tac --scenario "Agent completes research"
+tactus test procedure.tac --runs 10          # consistency check
+tactus test procedure.tac --mock             # mocked tools (deterministic)
+tactus test procedure.tac --mock-config mocks.json
+tactus test procedure.tac --param topic="AI"
+```
+
+## tactus eval
+
+Run `Evaluations({ ... })` (Pydantic Evals integration):
+
+```bash
+tactus eval procedure.tac
+tactus eval procedure.tac --runs 10
+```
+
+## Tracing
+
+```bash
+tactus trace-list
+tactus trace-show <run-id>
+tactus trace-show <run-id> --checkpoint 12
+tactus trace-export <run-id> trace.json
+```
+
+## Sandbox Image
+
+```bash
+tactus sandbox status
+tactus sandbox rebuild --force
+```
+
+## tactus ide
+
+```bash
+tactus ide
+tactus ide --port 5001
+tactus ide --no-browser
+```

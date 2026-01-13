@@ -1,0 +1,90 @@
+# Tools and Toolsets
+
+Tactus supports multiple tool sources. The quick rule is:
+
+- Use `tools = {...}` for *Lua variables* (stdlib tools, Lua function tools, toolsets you declared).
+- Use `toolsets = {...}` for *string-named tools* (MCP / plugin / other externally registered tools).
+
+## Standard Library Tools
+
+```lua
+local done = require("tactus.tools.done")
+```
+
+## Lua Function Tools (In-File)
+
+```lua
+slugify = Tool {
+  description = "Convert text to a slug",
+  input = { text = field.string{required = true} },
+  function(args) return string.lower(args.text):gsub("%s+", "-") end
+}
+
+worker = Agent { provider = "openai", tools = {slugify, done} }
+```
+
+## Lua Toolsets (`Toolset { type = "lua" }`)
+
+```lua
+math = Toolset {
+  type = "lua",
+  tools = {
+    {
+      name = "add",
+      description = "Add numbers",
+      parameters = {a = {type = "number"}, b = {type = "number"}},
+      handler = function(args) return tostring(args.a + args.b) end
+    }
+  }
+}
+
+calculator = Agent { provider = "openai", tools = {math, done} }
+```
+
+## Python Plugin Tools (`tool_paths`)
+
+Configure search paths in `.tactus/config.yml` (or a `{procedure}.tac.yml` sidecar):
+
+```yaml
+tool_paths:
+  - "./tools"
+  - "./plugins"
+```
+
+## MCP Tools (`mcp_servers`)
+
+Configure MCP servers:
+
+```yaml
+mcp_servers:
+  filesystem:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+```
+
+Then reference the tools by their string name (exact names depend on the server):
+
+```lua
+worker = Agent {
+  provider = "openai",
+  toolsets = {"filesystem_read_file", "filesystem_write_file"}
+}
+```
+
+For deterministic calls to external tools, fetch a handle by name:
+
+```lua
+local read_file = Tool.get("filesystem_read_file")
+local contents = read_file({path = "README.md"})
+```
+
+## Brokered Host Tools
+
+Host tools run in the broker trust zone (useful for secrets) and are invoked from the runtime:
+
+```lua
+local result = Host.call("host.ping", {value = 1})
+
+host_ping = Tool { use = "broker.host.ping" }
+local r2 = host_ping({value = 1})
+```

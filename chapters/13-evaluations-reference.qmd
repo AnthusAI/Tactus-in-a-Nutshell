@@ -1,0 +1,84 @@
+# Evaluations Reference
+
+Tactus has two “evaluation” concepts:
+
+- **Matchers** (`contains(...)`, `equals(...)`, `matches(...)`) for lightweight checks (often in BDD).
+- **Pydantic Evals** via `Evaluations({...})` and `tactus eval ...` for dataset-style quality evaluation.
+
+## Matchers
+
+```lua
+contains("error")   -- ("contains", "error")
+equals("done")      -- ("equals", "done")
+matches("^OK:")     -- ("matches", "^OK:")
+```
+
+## Pydantic Evals: `Evaluations({ ... })`
+
+Minimal example (deterministic evaluators):
+
+```lua
+Procedure {
+  input = {name = field.string{required = true}},
+  output = {greeting = field.string{required = true}},
+  function(input)
+    return {greeting = "Hello, " .. input.name .. "!"}
+  end
+}
+
+Evaluations({
+  dataset = {
+    {name = "alice", inputs = {name = "Alice"}, expected_output = {greeting = "Hello, Alice!"}}
+  },
+  evaluators = {
+    field.equals_expected{},
+    field.contains{},
+    field.min_length{}
+  },
+  runs = 1,
+  parallel = true
+})
+```
+
+Run from the CLI:
+
+```bash
+tactus eval procedure.tac
+tactus eval procedure.tac --runs 10
+```
+
+## Evaluator Types
+
+Evaluators are selected by `type` (the `field.*{}` helpers expand to evaluator configs).
+
+| Type | Use |
+|------|-----|
+| `contains` | Output (or field) contains a substring |
+| `contains_any` | Output contains any of N strings |
+| `equals_expected` / `exact_match` | Output equals `expected_output` |
+| `is_instance` | Type check |
+| `min_length` / `max_length` | String length constraints |
+| `llm_judge` | LLM-as-judge scoring |
+| `regex` | Regex match |
+| `json_schema` | Validate JSON-like structure |
+| `range` | Numeric bounds |
+| `tool_called` | Assert tool usage from trace |
+| `state_check` | Assert state value from trace |
+| `agent_turns` | Assert agent turn counts from trace |
+| `max_iterations` | Guardrail for loops |
+| `max_cost` / `max_tokens` | Resource constraints |
+
+## Thresholds (Quality Gates)
+
+```lua
+Evaluations({
+  dataset = {...},
+  evaluators = {...},
+  thresholds = {
+    min_success_rate = 0.90,
+    max_cost_per_run = 0.01,
+    max_duration = 10.0,
+    max_tokens_per_run = 500
+  }
+})
+```

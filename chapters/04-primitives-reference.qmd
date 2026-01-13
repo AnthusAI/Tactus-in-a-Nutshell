@@ -1,0 +1,145 @@
+# Primitives Reference
+
+This chapter is the "what can I call from Lua?" cheat sheet.
+
+## Agents (Callable Syntax)
+
+```lua
+worker()
+worker({message = "Do the next step"})
+worker({tools = {}})              -- no tools this turn
+worker({tools = {search, done}})  -- restrict tools
+worker({temperature = 0.2})
+```
+
+## Tools (Handles)
+
+Tools are variables (either `Tool { ... }` or `require(...)`).
+
+```lua
+-- Call directly (deterministic; no LLM involved)
+local result = slugify({text = "Hello World"})
+
+-- Inspect tool usage from an agent turn
+if done.called() then
+  local last = done.last_result()
+end
+```
+
+## State (`state` and `State.*`)
+
+State is a metatable-backed variable named `state`.
+
+```lua
+state.status = "running"
+local status = state.status
+
+state.count = (state.count or 0) + 1
+
+State.increment("count")
+State.increment("count", 5)
+State.append("items", "x")
+local snapshot = State.all()
+```
+
+## Stages (`Stages(...)` and `Stage.*`)
+
+```lua
+Stages({"planning", "executing", "complete"})
+
+Stage.set("planning")
+Stage.advance("executing")
+local s = Stage.current()
+local ok = Stage.is("complete")
+local history = Stage.history()
+```
+
+## Iterations / Stop
+
+```lua
+local n = Iterations.current()
+if Iterations.exceeded(20) then
+  Log.warn("Too many turns")
+end
+
+if Stop.requested() then
+  Log.warn("Stopping", {reason = Stop.reason()})
+end
+```
+
+## Human-in-the-Loop (`Human.*` and `System.alert`)
+
+```lua
+local approved = Human.approve({
+  message = "Deploy to prod?",
+  context = {version = "2.1.0"},
+  timeout = 3600,
+  default = false
+})
+
+local text = Human.input({
+  message = "What should I work on next?",
+  placeholder = "Type here..."
+})
+
+local review = Human.review({
+  message = "Review this draft",
+  artifact = draft,
+  artifact_type = "markdown",
+  options = {
+    {label = "Approve", type = "action"},
+    {label = "Reject", type = "cancel"}
+  }
+})
+
+Human.notify({message = "Still working…", level = "info"})
+Human.escalate({message = "Need operator assistance", context = State.all()})
+
+System.alert({message = "Sandbox out of memory", level = "critical", source = "runtime"})
+```
+
+## Checkpointing (`Step.checkpoint` and `Checkpoint.*`)
+
+Use `Step.checkpoint(fn)` to make arbitrary work durable (position-based).
+
+```lua
+local value = Step.checkpoint(function()
+  return expensive_operation()
+end)
+
+Checkpoint.clear_all()
+local next_pos = Checkpoint.next_position()
+```
+
+## Session
+
+```lua
+Session.inject_system("Focus on security")
+Session.append({role = "user", content = "Hello"})
+local history = Session.history()
+Session.clear()
+```
+
+## Files / JSON / Sleep / Retry
+
+```lua
+local txt = File.read("README.md")
+File.write("out.txt", "hello")
+local ok = File.exists("out.txt")
+
+local s = Json.encode({a = 1})
+local t = Json.decode(s)
+
+Sleep(0.5)
+local result = Retry.with_backoff(function() return flaky() end, {retries = 3})
+```
+
+## Graph Nodes
+
+```lua
+local root = GraphNode.root()
+local node = GraphNode.create({label = "branch"})
+GraphNode.set_current(node)
+local score = node:score()
+node:set_metadata("k", "v")
+```

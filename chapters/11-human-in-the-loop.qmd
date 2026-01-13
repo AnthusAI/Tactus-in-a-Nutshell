@@ -1,0 +1,76 @@
+# Human-in-the-Loop (HITL)
+
+HITL is a first-class feature: procedures can pause, ask a human a question, and resume exactly where they left off.
+
+## Message Types (What the UI Can Render)
+
+Every message is classified (important for UIs, logs, and automation):
+
+| Type | Meaning | Blocks? |
+|------|---------|---------|
+| `NOTIFICATION` | FYI update | No |
+| `ALERT_*` | system alert | No |
+| `PENDING_APPROVAL` | yes/no gate | Yes |
+| `PENDING_INPUT` | free-form input | Yes |
+| `PENDING_REVIEW` | review artifact | Yes |
+
+## Approval
+
+```lua
+local approved = Human.approve({
+  message = "Deploy to production?",
+  context = {version = "2.1.0"},
+  timeout = 3600,
+  default = false
+})
+
+if not approved then return {result = "cancelled", success = false} end
+```
+
+## Input
+
+```lua
+local topic = Human.input({
+  message = "What should I research?",
+  placeholder = "e.g. durable execution",
+  timeout = 600
+})
+```
+
+## Review
+
+```lua
+local review = Human.review({
+  message = "Review this draft",
+  artifact = draft,
+  artifact_type = "markdown",
+  options = {
+    {label = "Approve", type = "action"},
+    {label = "Request changes", type = "action"},
+    {label = "Reject", type = "cancel"}
+  }
+})
+
+-- review = {decision, feedback, edited_artifact, responded_at}
+```
+
+## Notifications and Escalation
+
+```lua
+Human.notify({message = "Started processing", level = "info"})
+Human.notify({message = "Retrying after timeout", level = "warning"})
+
+Human.escalate({message = "Operator help needed", context = State.all()})
+System.alert({message = "Sandbox OOM", level = "critical", source = "runtime"})
+```
+
+## The “Review Loop” Pattern
+
+```lua
+repeat
+  writer()
+  local r = Human.review({message = "Review", artifact = draft, options = {...}})
+  if r.decision == "Approve" then break end
+  writer({message = "Incorporate feedback:\n" .. (r.feedback or ""), tools = {}})
+until false
+```

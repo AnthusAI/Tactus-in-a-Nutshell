@@ -1,0 +1,41 @@
+# Tracing and Debugging
+
+Tactus records execution traces (agent turns, tool calls, checkpoints, HITL pauses). Traces are your primary debugging tool.
+
+## CLI Cheatsheet
+
+```bash
+tactus trace-list
+tactus trace-show <run-id>
+tactus trace-show <run-id> --checkpoint 12
+tactus trace-export <run-id> trace.json
+```
+
+## What to Look For
+
+- **Stop reason**: why the run ended (done tool, iteration cap, error, stop request)
+- **Stage history**: where it got stuck
+- **Checkpoint timeline**: the last successful checkpoint before failure
+- **Tool calls**: wrong tool, missing tool, wrong args, unexpected frequency
+
+## “Stuck Run” Checklist
+
+- Did you forget an iteration cap? (`Iterations.exceeded(n)`)
+- Did the agent have the completion tool enabled for that turn?
+- Did a HITL request fire and you’re waiting on a response?
+- Did a nondeterministic step need `Step.checkpoint(...)`?
+
+## Source Locations
+
+Trace checkpoints may include source locations (file + line). Use these to jump to the exact line that produced a checkpoint and inspect the surrounding logic.
+
+## Quick Pattern: Add Stage Markers
+
+```lua
+Stages({"start", "research", "review", "complete"})
+Stage.set("start")
+-- ...
+Stage.set("research")
+-- ...
+Stage.set("complete")
+```

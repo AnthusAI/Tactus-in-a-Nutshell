@@ -1,0 +1,116 @@
+# Troubleshooting
+
+## Common Errors
+
+### "Agent not found"
+
+Agent referenced but not defined:
+
+```lua
+-- Wrong
+researcher()
+
+-- Right: Define the agent (assignment-based) first
+researcher = Agent { provider = "openai", system_prompt = "...", tools = {done} }
+researcher()
+```
+
+### "Provider not specified"
+
+Agent missing `provider` (unless you rely on `default_provider` from config):
+
+```lua
+-- Wrong
+worker = Agent { system_prompt = "...", tools = {done} }
+
+-- Right
+worker = Agent { provider = "openai", system_prompt = "...", tools = {done} }
+```
+
+### "Required output field missing"
+
+Procedure didn't return required field:
+
+```lua
+Procedure {
+  output = {result = field.string{required = true}},
+  function(input)
+    -- Wrong: no return
+    Log.info("Done")
+
+    -- Right: return all required fields
+    return {result = "completed"}
+  end
+}
+```
+
+### "Tool 'name' not available"
+
+Tool not enabled for that agent turn:
+
+```lua
+local done = require("tactus.tools.done")
+
+search = Tool { description = "Search", input = {query = field.string{required = true}}, function(args) return "..." end }
+worker = Agent { provider = "openai", tools = {done} }
+-- search exists, but worker can't call it
+
+-- Right
+worker = Agent { provider = "openai", tools = {search, done} }
+```
+
+## Debugging Checkpoints
+
+View execution trace:
+
+```bash
+tactus trace-list
+tactus trace-show <trace-id>
+```
+
+## API Issues
+
+### Rate limits
+
+Add delays or reduce parallelism.
+
+### Timeouts
+
+Check network connectivity. Consider retry logic.
+
+### Invalid API key
+
+Verify key in config or environment:
+
+```bash
+echo $OPENAI_API_KEY
+cat .tactus/config.yml
+```
+
+## Performance Issues
+
+### Slow execution
+
+- Check model selection (gpt-4o-mini faster than gpt-4o)
+- Review token usage
+- Consider caching or `Step.checkpoint(...)` for expensive deterministic work
+
+### High costs
+
+- Use smaller models for simple tasks
+- Reduce max_tokens
+- Review tool call frequency
+
+## Test Failures
+
+### "Step not found"
+
+Custom step not defined or typo in step text.
+
+### "Specification failed"
+
+Check that agent behavior matches spec. Run with verbose output:
+
+```bash
+tactus test procedure.tac --verbose
+```

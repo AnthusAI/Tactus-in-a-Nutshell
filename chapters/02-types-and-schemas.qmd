@@ -1,0 +1,104 @@
+# Types and Schemas
+
+Tactus procedures are defined by three contracts:
+
+- **Input schema**: what the procedure accepts
+- **Output schema**: what it must return
+- **State**: durable, mutable data across turns and resumes
+
+## Field Builders
+
+Schemas use field builder functions:
+
+| Kind | Builder |
+|------|---------|
+| String | `field.string{...}` |
+| Number | `field.number{...}` |
+| Integer | `field.integer{...}` |
+| Boolean | `field.boolean{...}` |
+| Array | `field.array{...}` |
+| Object | `field.object{...}` |
+
+Common options:
+
+| Option | Meaning |
+|--------|---------|
+| `required = true` | Must be provided / returned |
+| `default = ...` | Optional field with a default |
+| `description = "..."` | Used in CLI/IDE prompts and docs |
+| `enum = {...}` | Allowed values (typically strings) |
+
+## Input Schema
+
+```lua
+Procedure {
+  input = {
+    topic = field.string{required = true, description = "What to research"},
+    depth = field.string{default = "shallow", enum = {"shallow", "deep"}},
+    max_turns = field.integer{default = 20}
+  },
+  function(input)
+    Log.info("Topic", {topic = input.topic, depth = input.depth})
+    return {result = "ok"}
+  end
+}
+```
+
+### Input Sources
+
+Inputs can come from:
+
+- `tactus run ... --param key=value`
+- `tactus run ... --interactive` (prompt for all values)
+- Defaults in the schema
+
+## Output Schema
+
+When `output = {...}` is present, Tactus validates the return object.
+
+```lua
+Procedure {
+  output = {
+    result = field.string{required = true},
+    success = field.boolean{required = true}
+  },
+  function(input)
+    return {result = "done", success = true}
+  end
+}
+```
+
+## State
+
+State is durable data tied to the procedure run. Use:
+
+- `state.key` for everyday reads/writes
+- `State.*` helpers for special operations
+
+```lua
+Procedure {
+  function(input)
+    state.count = (state.count or 0) + 1
+    State.append("events", {type = "turn", n = state.count})
+    return {count = state.count}
+  end
+}
+```
+
+## Quick Reference: Arrays and Objects
+
+Tactus will convert structured inputs into Lua tables. The key rule:
+
+- **Arrays become 1-indexed Lua lists** (use `ipairs`)
+- **Objects become Lua tables** (use `pairs`)
+
+```lua
+for i, item in ipairs(input.items) do ... end
+for k, v in pairs(input.config) do ... end
+```
+
+## Schema Checklist
+
+- Prefer `description` everywhere (it becomes your UI)
+- Put safe defaults on “knobs” like `max_turns`
+- Keep outputs small and stable (they become API surface)

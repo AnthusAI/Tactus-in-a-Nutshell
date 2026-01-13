@@ -1,0 +1,55 @@
+# Configuration Reference
+
+## .tactus/config.yml
+
+```yaml
+openai_api_key: "sk-..."          # keep private
+
+aws:
+  access_key_id: "AKIA..."
+  secret_access_key: "..."
+  default_region: "us-east-1"
+
+# Defaults (can be overridden per Agent)
+default_provider: "openai"
+default_model: "gpt-4o-mini"
+
+# Python plugin tool discovery
+tool_paths:
+  - "./tools"
+  - "./plugins"
+
+# MCP servers (tool providers)
+mcp_servers:
+  filesystem:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+
+# Sandbox (Docker) execution
+sandbox:
+  enabled: true
+  timeout: 3600
+  network: "none"
+  limits:
+    memory: "2g"
+    cpus: "2"
+```
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | OpenAI API key |
+| `AWS_ACCESS_KEY_ID` | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key |
+| `AWS_DEFAULT_REGION` | AWS region |
+| `GOOGLE_API_KEY` | Google API key |
+
+## Configuration Priority
+
+1. CLI args (highest)
+2. Sidecar: `{procedure}.tac.yml`
+3. Directory cascade: `.tactus/config.yml` (current directory and parents)
+4. User config: `~/.tactus/config.yml` (or `~/.config/tactus/config.yml`)
+5. System config: `/etc/tactus/config.yml` (and `/usr/local/etc/tactus/config.yml`)
+6. Environment variables (fallback)

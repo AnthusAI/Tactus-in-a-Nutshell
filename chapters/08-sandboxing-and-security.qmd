@@ -1,0 +1,58 @@
+# Sandboxing and Security
+
+Tactus is built for running untrusted or semi-trusted agent code safely. The core idea is **capability control**:
+
+- Lua code runs in a restricted VM
+- the runtime can run inside a Docker sandbox
+- tools are the only way to “reach out” (filesystem, network, secrets)
+
+## Sandbox Defaults
+
+In typical setups, procedures run in a Docker container with:
+
+- no network access by default
+- no secret environment variables inside the container
+- a workspace mount that can be destroyed after the run
+
+Configure sandbox behavior in `.tactus/config.yml` (or per-procedure via sidecar):
+
+```yaml
+sandbox:
+  enabled: true
+  timeout: 3600
+  network: "none"
+  limits:
+    memory: "2g"
+    cpus: "2"
+```
+
+## Trust Zones (Tool Types)
+
+Not all tools run in the same place:
+
+- **Lua tools**: run in the runtime (inside the sandbox when enabled)
+- **MCP tools**: subprocesses of the runtime (same trust zone unless isolated externally)
+- **Python plugin tools**: loaded by the runtime (same trust zone)
+- **Brokered host tools**: run outside the sandbox (best place for secrets)
+
+## Secrets: Where to Put Them
+
+Practical guidance:
+
+- keep API keys in host-side config / environment
+- avoid passing secrets into the runtime container
+- prefer **brokered host tools** for secret-bearing operations
+
+```lua
+local r = Host.call("host.ping", {value = 1})
+```
+
+## Sidecar Files Are Trusted
+
+`{procedure}.tac.yml` can include file paths and command configuration (e.g., MCP servers). Treat sidecars as trusted inputs.
+
+## Quick Checklist
+
+- Default to `--sandbox` for anything you wouldn’t run from a random PR
+- Use `tool` access (and per-turn `tools = {...}`) as your capability boundary
+- Checkpoint nondeterministic operations (`Step.checkpoint`) when durability matters

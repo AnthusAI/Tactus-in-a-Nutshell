@@ -1,0 +1,70 @@
+# Files and Data I/O
+
+Tactus provides small, sandbox-friendly file and serialization helpers for common workflows.
+
+## File
+
+```lua
+local text = File.read("README.md")
+File.write("out.txt", "hello")
+local ok = File.exists("out.txt")
+```
+
+## Json
+
+```lua
+local s = Json.encode({a = 1, b = {"x", "y"}})
+local t = Json.decode(s)
+```
+
+## Filesystem Helper Module (`tactus.io.fs`)
+
+Use the stdlib filesystem helper when you need directory listing and globs:
+
+```lua
+local fs = require("tactus.io.fs")
+
+local entries = fs.list_dir("chapters", {files_only = true, sort = true})
+local qmd_files = fs.glob("chapters/*.qmd", {sort = true})
+```
+
+### Determinism Note
+
+Directory contents can change between runs. For durable workflows, wrap enumeration and reads:
+
+```lua
+local fs = require("tactus.io.fs")
+
+local files = Step.checkpoint(function()
+  return fs.glob("docs/*.md", {sort = true})
+end)
+```
+
+## Quick Patterns
+
+### Build a Small Index
+
+```lua
+local fs = require("tactus.io.fs")
+
+local index = Step.checkpoint(function()
+  local files = fs.glob("docs/*.md", {sort = true})
+  local out = {}
+  for _, path in ipairs(files) do
+    out[path] = File.read(path)
+  end
+  return out
+end)
+```
+
+### Structured Output as JSON
+
+```lua
+Procedure {
+  output = {result = field.object{required = true}},
+  function(input)
+    local result = {ok = true, message = "done"}
+    return {result = result}
+  end
+}
+```

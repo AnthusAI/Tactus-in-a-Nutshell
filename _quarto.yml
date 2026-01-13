@@ -18,16 +18,34 @@ book:
   date: today
   chapters:
     - index.qmd
-    - chapters/01-syntax-reference.qmd
-    - chapters/02-primitive-reference.qmd
-    - chapters/03-built-in-toolsets.qmd
-    - chapters/04-bdd-step-reference.qmd
-    - chapters/05-evaluator-reference.qmd
-    - chapters/06-configuration-reference.qmd
-    - chapters/07-cli-reference.qmd
-    - chapters/08-common-patterns.qmd
-    - chapters/09-troubleshooting.qmd
-    - chapters/10-migration-guide.qmd
+    - part: "I. Language Essentials"
+      chapters:
+        - chapters/01-syntax-reference.qmd
+        - chapters/02-types-and-schemas.qmd
+        - chapters/03-templates-and-prompting.qmd
+        - chapters/04-primitives-reference.qmd
+    - part: "II. Tools & Capabilities"
+      chapters:
+        - chapters/05-configuration-reference.qmd
+        - chapters/06-tools-and-toolsets.qmd
+        - chapters/07-files-and-data-io.qmd
+        - chapters/08-sandboxing-and-security.qmd
+    - part: "III. Orchestration & Reliability"
+      chapters:
+        - chapters/09-durable-execution-patterns.qmd
+        - chapters/10-state-and-stages.qmd
+        - chapters/11-human-in-the-loop.qmd
+    - part: "IV. Testing & Operations"
+      chapters:
+        - chapters/12-bdd-step-reference.qmd
+        - chapters/13-evaluations-reference.qmd
+        - chapters/14-cli-reference.qmd
+        - chapters/15-tracing-and-debugging.qmd
+    - part: "V. Cookbook"
+      chapters:
+        - chapters/16-common-patterns.qmd
+        - chapters/17-troubleshooting.qmd
+        - chapters/18-migration-guide.qmd
 
 format:
   html:

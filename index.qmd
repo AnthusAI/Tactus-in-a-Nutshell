@@ -6,13 +6,38 @@ Keep this book on your desk (or in a browser tab) when you're writing Tactus cod
 
 ## What's Inside
 
-- **Syntax Reference** — Declaration syntax, field types, control structures
-- **Primitive Reference** — Agent, Tool, State, Human, Log, Session, Procedure
-- **BDD Step Reference** — All built-in step definitions
-- **Evaluator Reference** — All evaluator types
-- **CLI Reference** — All commands and options
-- **Common Patterns** — Copy-paste solutions for common tasks
-- **Troubleshooting** — Error messages and solutions
+**Part I: Language Essentials**
+
+- **Syntax Quick Reference** — `.tac` file shape, declarations, Lua control flow
+- **Types and Schemas** — input/output/state contracts, `field.*` builders
+- **Templates and Prompting** — `{input.*}` / `{state.*}` templating and prompt hooks
+- **Primitives Reference** — the core callable surface (agents, tools, state, stages, HITL, etc.)
+
+**Part II: Tools & Capabilities**
+
+- **Configuration Reference** — config cascade, tool discovery, sandbox settings
+- **Tools and Toolsets** — stdlib, Lua tools, toolsets, MCP tools, brokered host tools
+- **Files and Data I/O** — `File.*`, `Json.*`, `tactus.io.fs`, determinism patterns
+- **Sandboxing and Security** — trust zones, secrets, safe defaults
+
+**Part III: Orchestration & Reliability**
+
+- **Durable Execution Patterns** — checkpointing, retries, idempotency, stop requests
+- **State and Stages** — durable variables + observability
+- **Human-in-the-Loop** — approvals, input, review, escalation
+
+**Part IV: Testing & Operations**
+
+- **BDD Step Reference** — built-in Gherkin steps (tools, stages, stop reasons, etc.)
+- **Evaluations Reference** — `Evaluations({})` and evaluators for quality gates
+- **CLI Reference** — run/validate/test/eval/trace/ide/sandbox commands
+- **Tracing and Debugging** — how to read a run and find what went wrong
+
+**Part V: Cookbook**
+
+- **Common Patterns** — copy/paste patterns that ship
+- **Troubleshooting** — common failures and fixes
+- **Migration Guide** — moving from scripts/frameworks (and older Tactus syntax)
 
 ## Companion Books
 
@@ -24,12 +49,12 @@ Keep this book on your desk (or in a browser tab) when you're writing Tactus cod
 Code is shown without extensive explanation:
 
 ```lua
-Tool "done" {
-    description = "Signal completion",
-    input = {
-        message = field.string{required = true}
-    },
-    function(args) return args.message end
+local done = require("tactus.tools.done")
+
+echo = Tool {
+  description = "Return what you send",
+  input = {message = field.string{required = true}},
+  function(args) return args.message end
 }
 ```
 

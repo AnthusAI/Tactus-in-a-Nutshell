@@ -1,0 +1,76 @@
+# Templates and Prompting
+
+Tactus supports `{...}` templates in prompts. They’re designed for:
+
+- inserting **typed inputs** into prompts
+- reflecting **durable state** back to the model
+- adding **prepared context** without bloating the source
+
+## Template Namespaces
+
+| Namespace | Source | Example |
+|-----------|--------|---------|
+| `input` | procedure inputs | `{input.topic}` |
+| `state` | durable mutable state | `{state.items_processed}` |
+| `prepared` | agent `prepare()` output | `{prepared.file_contents}` |
+| `context` | runtime context from caller | `{context.parent_id}` |
+| `env` | environment variables | `{env.API_KEY}` |
+| `output` | final outputs (in `return_prompt`) | `{output.findings}` |
+
+Templates are re-evaluated before each agent turn.
+
+## Where Templates Appear
+
+Most commonly:
+
+- `system_prompt`
+- `initial_message`
+- `return_prompt`, `status_prompt`, `error_prompt`
+- per-call `message` (callable agents)
+
+```lua
+worker = Agent {
+  provider = "openai",
+  prepare = function()
+    return {now = os.date(), cwd = context.cwd}
+  end,
+  system_prompt = [[
+Time: {prepared.now}
+Working directory: {prepared.cwd}
+Task: {input.task}
+  ]]
+}
+```
+
+## “Prepared Context” Pattern
+
+Use `prepare()` for deterministic data-loading and preprocessing, then template it into prompts.
+
+```lua
+worker = Agent {
+  prepare = function()
+    local readme = File.read("README.md")
+    return {readme = readme}
+  end,
+  system_prompt = "Use this context:\n\n{prepared.readme}"
+}
+```
+
+## Prompt Components (Procedure-Level)
+
+Procedures can provide standardized prompts that frame the run:
+
+```lua
+Procedure {
+  return_prompt = "Return JSON for {output.result} only.",
+  error_prompt = "Explain what failed and what to do next.",
+  status_prompt = "Return a short status update.",
+  function(input) ... end
+}
+```
+
+## Prompt Hygiene (Nutshell Rules)
+
+- Put **contracts** in the prompt: “call `done` with X”, “use tool Y”, “return fields A/B”
+- Put **data** in templates: `{input...}`, `{state...}`, `{prepared...}`
+- Keep prompts short; move long context into `prepare()` (or tools)

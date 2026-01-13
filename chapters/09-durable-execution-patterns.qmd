@@ -1,0 +1,67 @@
+# Durable Execution Patterns
+
+Tactus workflows are meant to run for a long time: with retries, pauses, and human interactions. These patterns keep them reliable.
+
+## The Bounded Agent Loop
+
+The “Nutshell default” for any agent is: loop until a completion tool fires, but cap iterations.
+
+```lua
+local done = require("tactus.tools.done")
+
+repeat
+  worker()
+until done.called() or Iterations.exceeded(20)
+```
+
+## Checkpointing Arbitrary Work
+
+Agent turns and tool calls are checkpointed, but you can also checkpoint *your own* deterministic work:
+
+```lua
+local value = Step.checkpoint(function()
+  return expensive_operation()
+end)
+```
+
+Use this for:
+
+- file enumeration + reads
+- expensive preprocessing
+- external calls you wrap as deterministic tools
+
+## Retry and Backoff
+
+```lua
+local result = Retry.with_backoff(function()
+  return flaky_call()
+end, {retries = 3, base_delay = 0.5})
+```
+
+## Stop Requests
+
+```lua
+if Stop.requested() then
+  Log.warn("Stopping", {reason = Stop.reason()})
+  return {result = "stopped", success = false}
+end
+```
+
+## The “Summarize Tool Results” Turn
+
+When an agent uses tools heavily, add a tool-free summarization turn to keep context small:
+
+```lua
+worker()
+if search.called() then
+  worker({message = "Summarize tool results.", tools = {}})
+end
+```
+
+## Idempotency Rule
+
+If a line of code might run again after a resume, it must be safe to run twice.
+
+- Put nondeterminism behind tools.
+- Cache results with `Step.checkpoint(...)`.
+- Write outputs in a “commit” step after validation/review.

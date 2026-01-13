@@ -1,0 +1,69 @@
+# State and Stages
+
+State and stages are the two simplest ways to make long-running procedures observable and restartable.
+
+## State (`state` and `State.*`)
+
+Use `state` for durable variables.
+
+```lua
+state.items_done = (state.items_done or 0) + 1
+state.last_error = nil
+```
+
+Helpers:
+
+```lua
+State.increment("count")
+State.append("events", {type = "processed", id = 123})
+local snapshot = State.all()
+```
+
+## Stages
+
+Declare allowed stage names at the top level:
+
+```lua
+Stages({"planning", "executing", "awaiting_human", "complete"})
+```
+
+Then set/advance them in your procedure:
+
+```lua
+Stage.set("planning")
+-- ...
+Stage.advance("executing")
+-- ...
+Stage.set("complete")
+```
+
+Quick reference:
+
+```lua
+Stage.current()
+Stage.is("executing")
+Stage.history()
+```
+
+## Stage-First Procedure Skeleton
+
+```lua
+Stages({"planning", "work", "review", "complete"})
+local done = require("tactus.tools.done")
+
+Procedure {
+  function(input)
+    Stage.set("planning")
+    -- prepare state, inputs, and context
+
+    Stage.set("work")
+    repeat worker() until done.called() or Iterations.exceeded(20)
+
+    Stage.set("review")
+    local review = Human.review({message = "Review result", artifact = done.last_result()})
+
+    Stage.set("complete")
+    return {result = review.decision, success = review.decision == "Approve"}
+  end
+}
+```

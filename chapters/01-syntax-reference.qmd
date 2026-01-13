@@ -1,102 +1,194 @@
 # Syntax Quick Reference
 
+Tactus `.tac` files are Lua with a small, assignment-based DSL for declaring tools, agents, procedures, and tests.
+
+## File Skeleton
+
+```lua
+-- Standard library tools
+local done = require("tactus.tools.done")
+
+-- Custom tools (optional)
+search = Tool {
+  description = "Search the web",
+  input = { query = field.string{required = true} },
+  function(args) return "..." end
+}
+
+-- Agents (assignment-based; tools are variables, not strings)
+researcher = Agent {
+  provider = "openai",
+  model = "gpt-4o-mini",
+  system_prompt = "Research {input.topic}. Call done when finished.",
+  tools = {search, done}
+}
+
+-- Optional: declare the allowed stage names
+Stages({"researching", "writing", "complete"})
+
+-- The procedure (unnamed; defaults to "main")
+Procedure {
+  input = { topic = field.string{required = true} },
+  output = { findings = field.string{required = true} },
+  function(input)
+    Stage.set("researching")
+    repeat researcher() until done.called()
+    return {findings = done.last_result()}
+  end
+}
+
+-- Optional: tests (BDD, in-file)
+Specifications([[
+Feature: Research
+  Scenario: Completes
+    When the researcher agent takes turns
+    Then the done tool should be called
+]])
+```
+
 ## Declarations
 
-### Agent
+### Tools
+
+**Define a Lua function tool:**
 
 ```lua
-Agent "name" {
-    provider = "openai",          -- Required: openai, bedrock, google
-    model = "gpt-4o",             -- Optional: defaults from config
-    system_prompt = "...",        -- Required: agent instructions
-    initial_message = "...",      -- Optional: first message
-    toolsets = {"tool1", "tool2"} -- Optional: available tools
+slugify = Tool {
+  description = "Convert text to a slug",
+  input = { text = field.string{required = true} },
+  function(args)
+    return string.lower(args.text):gsub("%s+", "-")
+  end
 }
 ```
 
-### Tool
+**Import a standard library tool:**
 
 ```lua
-Tool "name" {
-    description = "What the tool does",
-    input = {
-        param = field.string{required = true, description = "..."}
-    },
-    function(args)
-        return "result"
-    end
+local done = require("tactus.tools.done")
+```
+
+### Agents
+
+```lua
+worker = Agent {
+  provider = "openai",
+  model = {
+    name = "gpt-4o",
+    temperature = 0.3,
+    max_tokens = 1200
+  },
+  prepare = function()
+    return {now = os.date()}
+  end,
+  system_prompt = [[
+Time: {prepared.now}
+Task: {input.task}
+  ]],
+  tools = {done}
 }
 ```
 
-### Procedure
+**Callable agent syntax:**
 
 ```lua
-Procedure "main" {
-    input = {
-        name = field.string{required = true}
-    },
-    output = {
-        result = field.string{required = true}
-    },
-    state = {
-        count = field.number{default = 0}
-    },
-    function(input)
-        return {result = "done"}
-    end
+worker()
+worker({message = "Focus on edge cases"})
+worker({tools = {}})                -- no tools this turn
+worker({tools = {search, done}})    -- restrict tools this turn
+```
+
+### Procedures
+
+Procedures are declared with `Procedure { ... }` (unnamed, defaults to `"main"`). Sub-procedures can be assigned to variables:
+
+```lua
+summarize = Procedure {
+  name = "summarize",
+  input = { text = field.string{required = true} },
+  output = { summary = field.string{required = true} },
+  return_prompt = "Return a short summary.",
+  function(input)
+    worker({message = input.text})
+    return {summary = done.last_result()}
+  end
+}
+
+Procedure {
+  function(input)
+    local result = summarize.run({text = "..."})
+    return {summary = result.summary}
+  end
 }
 ```
 
-### Toolset
+### Toolsets
+
+Use a `Toolset` when you want a *bundle* of tools.
 
 ```lua
-Toolset "name" {
-    type = "lua",
-    tools = {
-        {name = "add", parameters = {...}, handler = function(args) ... end}
+math_tools = Toolset {
+  type = "lua",
+  tools = {
+    {
+      name = "add",
+      description = "Add numbers",
+      parameters = {
+        a = {type = "number", required = true},
+        b = {type = "number", required = true}
+      },
+      handler = function(args) return tostring(args.a + args.b) end
     }
+  }
 }
+
+calculator = Agent { provider = "openai", tools = {math_tools, done} }
 ```
 
-## Field Types
+## Schemas (Input/Output/State)
 
-| Type | Syntax | Options |
-|------|--------|---------|
-| String | `field.string{}` | required, default, description, enum |
-| Number | `field.number{}` | required, default, description |
-| Boolean | `field.boolean{}` | required, default, description |
-| Array | `field.array{}` | required, default, description |
-| Object | `field.object{}` | required, default, description |
+### Field Types
 
-## Control Flow
+| Type | Builder |
+|------|---------|
+| String | `field.string{...}` |
+| Number | `field.number{...}` |
+| Integer | `field.integer{...}` |
+| Boolean | `field.boolean{...}` |
+| Array | `field.array{...}` |
+| Object | `field.object{...}` |
+
+### Common Field Options
+
+| Option | Meaning |
+|--------|---------|
+| `required = true` | Must be provided / returned |
+| `default = ...` | Optional field with a default |
+| `description = "..."` | Shows in CLI/IDE forms and docs |
+| `enum = {...}` | Restrict values (strings) |
+
+## Templates
+
+Templates are `{...}` substitutions (re-evaluated before each agent turn).
+
+| Namespace | Example |
+|-----------|---------|
+| `input` | `{input.topic}` |
+| `state` | `{state.count}` |
+| `prepared` | `{prepared.file_contents}` |
+| `context` | `{context.parent_id}` |
+| `env` | `{env.API_KEY}` |
+
+## Control Flow (Lua)
 
 ```lua
--- If/else
-if condition then
-    -- code
-elseif other then
-    -- code
-else
-    -- code
-end
-
--- While loop
-while condition do
-    -- code
-end
-
--- For loop (numeric)
-for i = 1, 10 do
-    -- code
-end
-
--- For loop (table)
-for key, value in pairs(table) do
-    -- code
-end
-
--- Repeat/until
+-- repeat/until is the common “agent loop”
 repeat
-    -- code
-until condition
+  worker()
+until done.called() or Iterations.exceeded(10)
+
+-- standard Lua conditionals and loops also apply
+if Stop.requested() then
+  Log.warn("Stopping early", {reason = Stop.reason()})
+end
 ```

@@ -1,0 +1,109 @@
+# Migration Guide
+
+## From Python Scripts
+
+### Before (Python)
+
+```python
+import openai
+
+def run_agent(prompt):
+    messages = [{"role": "user", "content": prompt}]
+    while True:
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            tools=[search_tool, done_tool]
+        )
+        if done_called(response):
+            return extract_result(response)
+        messages.append(response.choices[0].message)
+```
+
+### After (Tactus)
+
+```lua
+local done = require("tactus.tools.done")
+search = Tool { ... }
+
+worker = Agent {
+  provider = "openai",
+  model = "gpt-4o",
+  system_prompt = "...",
+  tools = {search, done}
+}
+
+Procedure {
+  input = {prompt = field.string{required = true}},
+  output = {result = field.string{required = true}},
+  function(input)
+    worker({message = input.prompt})
+    repeat worker() until done.called() or Iterations.exceeded(20)
+    return {result = done.last_result() or ""}
+  end
+}
+```
+
+**Benefits:**
+- Automatic checkpointing
+- HITL built-in
+- BDD testing
+- Type-safe I/O
+
+## From LangChain/LangGraph
+
+### Before (LangGraph)
+
+```python
+class State(TypedDict):
+    messages: list
+    done: bool
+
+graph = StateGraph(State)
+graph.add_node("agent", agent_node)
+graph.add_node("tools", tool_node)
+graph.add_conditional_edges(...)
+app = graph.compile(checkpointer=memory)
+```
+
+### After (Tactus)
+
+```lua
+local done = require("tactus.tools.done")
+worker = Agent { provider = "openai", tools = {search, done} }
+
+Procedure {
+  function(input)
+    repeat worker() until done.called()
+    return {result = done.last_result() or ""}
+  end
+}
+```
+
+**Benefits:**
+- Imperative code instead of graph definition
+- Simpler mental model
+- Same durability guarantees
+
+## Key Differences
+
+| Python/LangChain | Tactus |
+|------------------|--------|
+| Classes and decorators | Assignment-based declarations |
+| Manual state management | Durable `state` + checkpoints |
+| Graph-based flow | Imperative loops |
+| Separate test files | Embedded `Specifications([[]])` |
+| Multiple files | Single `.tac` file |
+
+## From Older Tactus Syntax
+
+Older examples often use “named blocks” (e.g., `Agent "worker" { ... }`). In v5, declarations are assignment-based and referenced as variables:
+
+```lua
+worker = Agent { ... }
+repeat worker() until done.called()
+```
+
+## Script Mode (Zero-Wrapper)
+
+Script mode lets Tactus wrap simple Lua scripts as a procedure automatically. It’s useful when migrating a quick script into a full `Procedure { ... }` file.

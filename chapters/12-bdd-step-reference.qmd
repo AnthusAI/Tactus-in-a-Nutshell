@@ -1,0 +1,75 @@
+# BDD Step Reference
+
+Built-in Gherkin steps are designed to assert orchestration behavior (tools, stages, state, stop reasons, iterations).
+
+## Tool Steps
+
+```gherkin
+Then the search tool should be called
+Then the search tool should not be called
+Then the search tool should be called at least 3 times
+Then the search tool should be called exactly 2 times
+Then the search tool should be called with query=test
+```
+
+## Stage Steps
+
+```gherkin
+Given the procedure has started
+Then the stage should be processing
+Then the stage should transition from planning to executing
+Given we are in stage complete
+```
+
+## State Steps
+
+```gherkin
+Then the state count should be 5
+Then the state error should exist
+Then the state should contain results
+```
+
+## Completion Steps
+
+```gherkin
+Then the procedure should complete successfully
+Then the procedure should fail
+Then the stop reason should be done
+Then the stop reason should contain timeout
+```
+
+## Iteration Steps
+
+```gherkin
+Then the total iterations should be less than 10
+Then the total iterations should be between 5 and 15
+Then the agent should take at least 3 turns
+```
+
+## Parameter Steps
+
+```gherkin
+Given the topic parameter is quantum computing
+Then the agent's context should include quantum computing
+```
+
+## Agent Steps
+
+```gherkin
+When the worker agent takes turns
+When the procedure runs
+```
+
+## Custom Steps
+
+```lua
+step("the research quality is high", function()
+    local results = state.results or {}
+    assert(#results > 5, "Not enough results")
+end)
+
+step("the user {name} is greeted", function(name)
+    local greeting = state.greeting or ""
+    assert(string.find(greeting, name), "Name not in greeting")
+end)
+```

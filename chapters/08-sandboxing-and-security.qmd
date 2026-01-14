@@ -51,6 +51,26 @@ local r = Host.call("host.ping", {value = 1})
 
 `{procedure}.tac.yml` can include file paths and command configuration (e.g., MCP servers). Treat sidecars as trusted inputs.
 
+## Volume Mount Trust Boundaries
+
+**Default behavior**: Current directory mounted to `/workspace:rw`
+
+**Trust model**:
+- `.tac` files: Sandboxed Lua code (safe for untrusted sources)
+- `.yml` files: Trusted configuration (volume mounts, network, etc.)
+- Volume mounts expose host filesystem to container
+
+**Safety with default mount**:
+- Container isolation limits access to mounted directory only
+- Git provides version control and rollback
+- Use `:ro` (read-only) when possible for external data
+
+**Disable for untrusted procedures**:
+```yaml
+sandbox:
+  mount_current_dir: false
+```
+
 ## Quick Checklist
 
 - Default to `--sandbox` for anything you wouldn’t run from a random PR

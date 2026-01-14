@@ -29,11 +29,55 @@ mcp_servers:
 sandbox:
   enabled: true
   timeout: 3600
-  network: "none"
+  network: "bridge"
+  mount_current_dir: true      # default: mount current directory
+  volumes:
+    - "../data:/data:ro"        # additional mounts
+    - "./output:/output:rw"
   limits:
     memory: "2g"
     cpus: "2"
 ```
+
+## Sandbox Volumes
+
+### Default Behavior
+Current directory automatically mounted to `/workspace:rw`.
+
+### Configuration Syntax
+```yaml
+sandbox:
+  mount_current_dir: true  # default
+  volumes:
+    - "../data:/workspace/data:ro"     # read-only
+    - "./output:/workspace/output:rw"  # read-write
+```
+
+### Common Patterns
+
+| Pattern | Use Case |
+|---------|----------|
+| `.:/workspace:rw` | Full project access (default) |
+| `./output:/workspace/output:rw` | Output directory only |
+| `../repo:/workspace/external:ro` | Cross-repository data |
+| `~/.config:/config:ro` | User config access |
+
+### Disabling Default Mount
+```yaml
+sandbox:
+  mount_current_dir: false
+  volumes:
+    - "./output:/workspace/output:rw"  # Only mount output
+```
+
+### Path Resolution
+- Relative paths resolve from procedure directory
+- `~` expands to home directory
+- Absolute paths used as-is
+
+### Volume Modes
+- `:ro` - Read-only (safer when you don't need writes)
+- `:rw` - Read-write (default if not specified)
 
 ## Environment Variables
 

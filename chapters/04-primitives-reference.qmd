@@ -143,3 +143,25 @@ GraphNode.set_current(node)
 local score = node:score()
 node:set_metadata("k", "v")
 ```
+
+## Models (Callable Syntax)
+
+Models are stateless predictors. In procedures, you typically look up a model by name
+and call it like a function:
+
+```lua
+local classifier = Model("imdb_nb")
+local result = classifier({text = "Great movie"})
+local out = result.output or result
+print(out.label, out.confidence)
+```
+
+When testing, use `Mocks { ... }` to override model outputs deterministically:
+
+```lua
+Mocks {
+  imdb_nb = {
+    returns = {label = "positive", confidence = 0.92}
+  }
+}
+```

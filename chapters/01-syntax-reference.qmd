@@ -1,6 +1,6 @@
 # Syntax Quick Reference
 
-Tactus `.tac` files are Lua with a small, assignment-based DSL for declaring tools, agents, procedures, and tests.
+Tactus `.tac` files are Lua with a small, assignment-based DSL for declaring models, tools, agents, procedures, and tests.
 
 ## File Skeleton
 
@@ -21,6 +21,15 @@ researcher = Agent {
   model = "gpt-4o-mini",
   system_prompt = "Research {input.topic}. Call done when finished.",
   tools = {search, done}
+}
+
+-- Models (stateless prediction; registry-backed or other backends)
+Model "sentiment" {
+  type = "registry",
+  name = "sentiment",
+  version = "latest",
+  input = { text = "string" },
+  output = { label = "string", confidence = "float" }
 }
 
 -- Optional: declare the allowed stage names

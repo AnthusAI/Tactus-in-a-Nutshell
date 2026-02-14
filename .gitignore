@@ -21,3 +21,6 @@ __pycache__/
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Local Beads (task tracking) artifacts
+.beads/

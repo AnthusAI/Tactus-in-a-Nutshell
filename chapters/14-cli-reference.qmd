@@ -70,6 +70,30 @@ tactus eval procedure.tac
 tactus eval procedure.tac --runs 10
 ```
 
+## tactus train
+
+Train a model declared in a `.tac` file. Training configuration lives inside the
+Model block under `training = { ... }`.
+
+```bash
+# Install ML extras if needed
+pip install tactus[ml]
+
+# Train the model and register artifacts
+tactus train file.tac --model imdb_nb
+```
+
+If a file declares multiple models, `--model` is required.
+
+## tactus models evaluate
+
+Evaluate a registered model version against the Model's `training.data.test` split.
+
+```bash
+tactus models evaluate file.tac --model imdb_nb
+tactus models evaluate file.tac --model imdb_nb --candidate nb-tfidf
+```
+
 ## Tracing
 
 ```bash

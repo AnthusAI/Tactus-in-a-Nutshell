@@ -2,8 +2,9 @@
 
 Tactus supports multiple tool sources. The quick rule is:
 
-- Use `tools = {...}` for *Lua variables* (stdlib tools, Lua function tools, toolsets you declared).
-- Use `toolsets = {...}` for *string-named tools* (MCP / plugin / other externally registered tools).
+- Use `tools = {...}` everywhere.
+  - Entries can be Lua variables (stdlib tools, `Tool { ... }`, toolsets you declared).
+  - Entries can also be *string names* that resolve to a registered toolset (e.g., an MCP server name like `"filesystem"`).
 
 ## Standard Library Tools
 
@@ -62,12 +63,34 @@ mcp_servers:
     args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
 ```
 
-Then reference the tools by their string name (exact names depend on the server):
+Then reference the MCP server's toolset by its server name:
 
 ```lua
 worker = Agent {
   provider = "openai",
-  toolsets = {"filesystem_read_file", "filesystem_write_file"}
+  tools = {"filesystem", done}
+}
+```
+
+If you prefer, you can alias an MCP server toolset explicitly:
+
+```lua
+Toolset "filesystem_tools" {
+  use = "mcp.filesystem"
+}
+
+worker = Agent { provider = "openai", tools = {"filesystem_tools", done} }
+```
+
+If you want to restrict an agent to a subset of tools, use an include filter:
+
+```lua
+worker = Agent {
+  provider = "openai",
+  tools = {
+    {name = "filesystem", include = {"filesystem_read_file", "filesystem_write_file"}},
+    done
+  }
 }
 ```
 

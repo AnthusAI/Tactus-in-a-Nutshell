@@ -27,8 +27,7 @@ local done = require("tactus.tools.done")
 search = Tool { ... }
 
 worker = Agent {
-  provider = "openai",
-  model = "gpt-4o",
+  model = "openai/gpt-4o",
   system_prompt = "...",
   tools = {search, done}
 }
@@ -70,7 +69,7 @@ app = graph.compile(checkpointer=memory)
 
 ```lua
 local done = require("tactus.tools.done")
-worker = Agent { provider = "openai", tools = {search, done} }
+worker = Agent { model = "openai/gpt-4o-mini", tools = {search, done} }
 
 Procedure {
   function(input)

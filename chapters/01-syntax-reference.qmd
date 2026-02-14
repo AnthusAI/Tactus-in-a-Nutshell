@@ -17,8 +17,7 @@ search = Tool {
 
 -- Agents (assignment-based; tools are variables, not strings)
 researcher = Agent {
-  provider = "openai",
-  model = "gpt-4o-mini",
+  model = "openai/gpt-4o-mini",
   system_prompt = "Research {input.topic}. Call done when finished.",
   tools = {search, done}
 }
@@ -29,7 +28,22 @@ Model "sentiment" {
   name = "sentiment",
   version = "latest",
   input = { text = "string" },
-  output = { label = "string", confidence = "float" }
+  output = { label = "string", confidence = "float" },
+
+  -- Optional: training config (used by `tactus train` and `tactus models evaluate`)
+  training = {
+    data = {
+      source = "hf",
+      name = "imdb",
+      train = "train",
+      test = "test",
+      text_field = "text",
+      label_field = "label"
+    },
+    candidates = {
+      { name = "nb-tfidf", trainer = "naive_bayes" }
+    }
+  }
 }
 
 -- Optional: declare the allowed stage names
@@ -81,9 +95,8 @@ local done = require("tactus.tools.done")
 
 ```lua
 worker = Agent {
-  provider = "openai",
   model = {
-    name = "gpt-4o",
+    name = "openai/gpt-4o",
     temperature = 0.3,
     max_tokens = 1200
   },
@@ -151,7 +164,7 @@ math_tools = Toolset {
   }
 }
 
-calculator = Agent { provider = "openai", tools = {math_tools, done} }
+calculator = Agent { model = "openai/gpt-4o-mini", tools = {math_tools, done} }
 ```
 
 ## Schemas (Input/Output/State)

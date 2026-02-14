@@ -1,5 +1,12 @@
 # Common Patterns
 
+## Agent vs Model
+
+Quick rule:
+
+- Use an **Agent** when you need multi-turn reasoning, tool calls, or conversation state.
+- Use a **Model** when you want a stateless, schema-first prediction (`input -> output`) that you can train, version, and evaluate.
+
 ## The Done Tool Pattern
 
 Standard pattern for agent completion:
@@ -8,7 +15,7 @@ Standard pattern for agent completion:
 local done = require("tactus.tools.done")
 
 worker = Agent {
-  provider = "openai",
+  model = "openai/gpt-4o-mini",
   system_prompt = "Do the task. Call done when finished.",
   tools = {done}
 }

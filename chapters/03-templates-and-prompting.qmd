@@ -30,7 +30,7 @@ Most commonly:
 
 ```lua
 worker = Agent {
-  provider = "openai",
+  model = "openai/gpt-4o-mini",
   prepare = function()
     return {now = os.date(), cwd = context.cwd}
   end,

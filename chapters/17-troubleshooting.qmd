@@ -11,20 +11,21 @@ Agent referenced but not defined:
 researcher()
 
 -- Right: Define the agent (assignment-based) first
-researcher = Agent { provider = "openai", system_prompt = "...", tools = {done} }
+researcher = Agent { model = "openai/gpt-4o-mini", system_prompt = "...", tools = {done} }
 researcher()
 ```
 
 ### "Provider not specified"
 
-Agent missing `provider` (unless you rely on `default_provider` from config):
+Agent missing a provider (or a provider-prefixed model). The simplest fix is to
+use `model = "openai/..."`:
 
 ```lua
 -- Wrong
 worker = Agent { system_prompt = "...", tools = {done} }
 
 -- Right
-worker = Agent { provider = "openai", system_prompt = "...", tools = {done} }
+worker = Agent { model = "openai/gpt-4o-mini", system_prompt = "...", tools = {done} }
 ```
 
 ### "Required output field missing"
@@ -52,11 +53,11 @@ Tool not enabled for that agent turn:
 local done = require("tactus.tools.done")
 
 search = Tool { description = "Search", input = {query = field.string{required = true}}, function(args) return "..." end }
-worker = Agent { provider = "openai", tools = {done} }
+worker = Agent { model = "openai/gpt-4o-mini", tools = {done} }
 -- search exists, but worker can't call it
 
 -- Right
-worker = Agent { provider = "openai", tools = {search, done} }
+worker = Agent { model = "openai/gpt-4o-mini", tools = {search, done} }
 ```
 
 ## Debugging Checkpoints

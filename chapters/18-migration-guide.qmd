@@ -84,6 +84,46 @@ Procedure {
 - Simpler mental model
 - Same durability guarantees
 
+## From Large MCP Tool Catalogs
+
+When an MCP server has many related operations, consider replacing the catalog with one programmable Tactus gateway. The host exposes an application module, and the model writes a short snippet that composes those APIs for the current task.
+
+### Before
+
+```text
+MCP server exposes:
+- score_info
+- score_predict
+- feedback_find
+- evaluation_run
+- report_run
+- procedure_run
+- ...
+```
+
+### After
+
+```lua
+local score = plexus.score.info({ id = "compliance-score" })
+local docs = plexus.docs.get({ key = "overview" })
+
+return {
+  score_name = score.scoreName,
+  docs = docs.content,
+}
+```
+
+Generic hosts usually expose this shape through `require("your_app")`; Plexus hides that bootstrap by injecting `plexus` as a global inside `execute_tactus`.
+
+**Benefits:**
+- One MCP tool definition instead of a large context-heavy catalog
+- Smaller base context, with focused docs loaded on demand through discovery APIs
+- Programmatic composition inside sandboxed Tactus
+- Task-specific tools assembled from lower-level APIs
+- Optional bounded `Agent` loops inside the snippet when the task needs agentic investigation
+- Lazy discovery with `api.list` and `docs.get`
+- Host-owned policy, traces, budgets, HITL, and async handles
+
 ## Key Differences
 
 | Python/LangChain | Tactus |

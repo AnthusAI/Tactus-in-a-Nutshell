@@ -111,3 +111,18 @@ local result = Host.call("host.ping", {value = 1})
 host_ping = Tool { use = "broker.host.ping" }
 local r2 = host_ping({value = 1})
 ```
+
+## Host-Registered Modules
+
+Embedding applications can register a Python-backed module that sandboxed Tactus code imports with `require(...)`:
+
+```python
+runtime.register_python_module("your_app", app_module)
+```
+
+```lua
+local app = require("your_app")
+return app.api.list({})
+```
+
+Use this when a host application wants to expose an SDK-like capability surface, not a long list of separate agent tools. The base context only needs to explain the gateway and its discovery functions; detailed docs and examples can be loaded through the module when the task needs them. The model can write a small Tactus program that composes the module APIs into a task-specific tool. That program can also call a bounded `Agent` if the task needs a tool-using loop. Plexus uses this pattern for its `execute_tactus` MCP server: one MCP tool runs sandboxed Tactus snippets, and the runtime injects `plexus` as a global for scorecards, scores, feedback, evaluations, reports, docs, budgets, and handles.

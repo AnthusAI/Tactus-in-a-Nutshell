@@ -4,6 +4,8 @@ on:
   push:
     branches: ["main"]
     paths: ["chapters/**", "images/**", "index.qmd", "_quarto.yml", "book-links.yml", "tactus-target.yml", ".github/workflows/docs.yml"]
+  pull_request:
+    paths: [".github/workflows/docs.yml"]
   workflow_dispatch:
 
 permissions:
@@ -12,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages-papyrus"
+  group: "pages"
   cancel-in-progress: false
 
 env:
@@ -20,7 +22,6 @@ env:
 
 jobs:
   build:
-    if: ${{ vars.DOCS_SITE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,7 +47,7 @@ jobs:
           path: _site
 
   deploy:
-    if: ${{ vars.DOCS_SITE_ENABLED == 'true' && vars.DOCS_DEPLOY == 'true' }}
+    if: ${{ github.event_name != 'pull_request' }}
     needs: build
     runs-on: ubuntu-latest
     environment:

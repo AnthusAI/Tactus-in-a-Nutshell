@@ -40,6 +40,7 @@ jobs:
           python -m papyrus_content.markus_renderer.book_site
           --project . --out _site
           --source-url "https://github.com/AnthusAI/Tactus-in-a-Nutshell"
+          --site-url "https://anthusai.github.io/Tactus-in-a-Nutshell/"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
